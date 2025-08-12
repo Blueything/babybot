@@ -1,0 +1,27 @@
+type Query {
+  hello: String!
+  babyHealthAdvice(input: BabyInput!): Advice!
+  allBabies: [Baby!]!
+}
+
+
+
+type Mutation {
+  addBabyProfile(name: String!, ageInMonths: Int!, notes: String): Baby!
+}
+
+type Advice {
+  message: String
+  tips: [String]
+}
+
+type Baby {
+  name: String
+  ageInMonths: Int
+  notes: String
+}
+input BabyInput {
+  name: String
+  ageInMonths: Int!
+  notes: String
+}

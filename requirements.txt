@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+ariadne
+sqlmodel
+aiofiles
+python-multipart

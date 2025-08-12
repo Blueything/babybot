@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.db
+.env
+
+# VSCode or PyCharm
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Python environments
+.venv/
+env/

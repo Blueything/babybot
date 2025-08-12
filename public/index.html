@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BabyBot</title>
+</head>
+<body>
+  <h1>Add Baby Profile</h1>
+  <form id="baby-form">
+    <label>Name: <input type="text" id="name" required></label><br><br>
+    <label>Age in Months: <input type="number" id="age" required></label><br><br>
+    <label>Notes: <input type="text" id="notes"></label><br><br>
+    <button type="submit">Add Baby</button>
+  </form>
+
+  <h2>Server Response:</h2>
+  <pre id="response"></pre>
+
+  <hr>
+
+  <h1>Ask for Baby Health Advice</h1>
+  <form id="advice-form">
+    <label>Name: <input type="text" id="adv-name"></label><br><br>
+    <label>Age in Months: <input type="number" id="adv-age" required></label><br><br>
+    <label>Notes: <input type="text" id="adv-notes"></label><br><br>
+    <button type="submit">Get Advice</button>
+  </form>
+
+  <h2>Advice:</h2>
+  <pre id="advice-response"></pre>
+
+  <script>
+    // Add Baby Profile
+    const form = document.getElementById('baby-form');
+    const responseBox = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const age = parseInt(document.getElementById('age').value);
+      const notes = document.getElementById('notes').value;
+
+      const query = `
+        mutation AddBaby($name: String!, $ageInMonths: Int!, $notes: String) {
+          addBabyProfile(name: $name, ageInMonths: $ageInMonths, notes: $notes) {
+            name
+            ageInMonths
+            notes
+          }
+        }
+      `;
+
+      const variables = { name, ageInMonths: age, notes };
+
+      const res = await fetch('http://localhost:8000/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables })
+      });
+
+      const json = await res.json();
+      responseBox.textContent = JSON.stringify(json.data.addBabyProfile, null, 2);
+    });
+
+    // Ask for Advice
+    const adviceForm = document.getElementById('advice-form');
+    const adviceResponse = document.getElementById('advice-response');
+
+    adviceForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('adv-name').value;
+      const age = parseInt(document.getElementById('adv-age').value);
+      const notes = document.getElementById('adv-notes').value;
+
+      const query = `
+        query BabyAdvice($input: BabyInput!) {
+          babyHealthAdvice(input: $input) {
+            message
+            tips
+          }
+        }
+      `;
+
+      const variables = {
+        input: { name, ageInMonths: age, notes }
+      };
+
+      const res = await fetch('http://localhost:8000/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables })
+      });
+
+      const json = await res.json();
+      adviceResponse.textContent = JSON.stringify(json.data.babyHealthAdvice, null, 2);
+    });
+  </script>
+</body>
+</html>
