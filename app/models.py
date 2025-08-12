@@ -1,4 +1,7 @@
 # app/models.py
+import os
+
+sqlite_file_name = os.getenv("SQLITE_PATH", "babybot.db")  # default to local
 
 from sqlmodel import SQLModel, Field, create_engine
 

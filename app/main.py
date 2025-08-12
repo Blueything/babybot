@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from ariadne import QueryType, MutationType, gql, make_executable_schema
 from ariadne.asgi import GraphQL
 from app.resolvers import (
+    resolve_baby_llm_advice,
+    resolve_delete_baby_profile,
     resolve_hello,
     resolve_baby_health_advice,
     resolve_add_baby_profile,
@@ -18,10 +20,14 @@ type_defs = gql(open("app/schema.graphql").read())
 query = QueryType()
 query.set_field("hello", resolve_hello)
 query.set_field("babyHealthAdvice", resolve_baby_health_advice)
+query.set_field("babyLLMAdvice", resolve_baby_llm_advice)
+
 query.set_field("allBabies", resolve_all_babies)
 
 mutation = MutationType()
 mutation.set_field("addBabyProfile", resolve_add_baby_profile)
+mutation.set_field("deleteBabyProfile", resolve_delete_baby_profile)
+
 
 schema = make_executable_schema(type_defs, [query, mutation])
 

@@ -1,14 +1,19 @@
 type Query {
   hello: String!
-  babyHealthAdvice(input: BabyInput!): Advice!
   allBabies: [Baby!]!
+  babyHealthAdvice(ageInMonths: Int!): Advice!
+  babyLLMAdvice(ageInMonths: Int!): Advice!
 }
-
 
 
 type Mutation {
   addBabyProfile(name: String!, ageInMonths: Int!, notes: String): Baby!
 }
+
+extend type Mutation {
+  deleteBabyProfile(name: String!): Boolean!
+}
+
 
 type Advice {
   message: String
@@ -20,6 +25,7 @@ type Baby {
   ageInMonths: Int
   notes: String
 }
+
 input BabyInput {
   name: String
   ageInMonths: Int!

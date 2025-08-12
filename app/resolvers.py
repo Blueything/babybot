@@ -3,6 +3,13 @@
 from sqlmodel import Session, select
 from app.models import Baby, engine
 
+from app.simulate_llm import simulate_llm_response  # 👈 ADD THIS
+
+
+
+USE_LLM = True  # 🔁 Switch here
+
+
 def resolve_hello(_, info):
     return "Hello from BabyBot!"
 
@@ -19,38 +26,63 @@ def resolve_all_babies(_, info):
         statement = select(Baby)
         results = session.exec(statement)
         return results.all()
+    
+def resolve_delete_baby_profile(_, info, name):
+    from sqlmodel import select
+    with Session(engine) as session:
+        statement = select(Baby).where(Baby.name == name)
+        baby = session.exec(statement).first()
+        if not baby:
+            return False
+        session.delete(baby)
+        session.commit()
+        return True
 
-def resolve_baby_health_advice(_, info, input):
-    age = input.get("ageInMonths", 0)
-    name = input.get("name", "the baby")
-    notes = input.get("notes", "")
 
-    # Placeholder for LLM integration
-    if age < 6:
+def resolve_baby_health_advice(_, info, ageInMonths):
+    if USE_LLM:
+        prompt = f"What should I do to keep a baby healthy at {ageInMonths} months?"
+
+        # Simulated LLM logic
+        response = simulate_llm_response(prompt)
+
         return {
-            "message": f"{name} is very young (under 6 months).",
+            "message": response["summary"],
+            "tips": response["tips"]
+        }
+
+    # ✅ Original logic (rule-based)
+    if ageInMonths < 6:
+        return {
+            "message": "Your baby is very young.",
             "tips": [
-                "Breastfeed or formula only.",
-                "Avoid solid foods.",
-                "Ensure tummy time and frequent naps."
+                "Breastfeed or formula only",
+                "No solid food yet",
+                "Sleep often, tummy time daily"
             ]
         }
-    elif age < 12:
+    elif ageInMonths < 12:
         return {
-            "message": f"{name} is growing well (6–12 months)!",
+            "message": "Baby is growing fast!",
             "tips": [
-                "Introduce soft solids.",
-                "Supervised crawling helps muscle growth.",
-                "Start reading or talking frequently."
+                "Introduce soft solids",
+                "Lots of supervised crawling",
+                "Read and talk often"
             ]
         }
     else:
         return {
-            "message": f"{name} is entering toddler stage!",
+            "message": "Your toddler is exploring the world.",
             "tips": [
-                "Encourage walking and exploration.",
-                "Routine is important.",
-                "Give finger foods and water."
+                "Finger foods and water",
+                "Encourage walking and playing",
+                "Stick to a daily routine"
             ]
         }
+
+def resolve_baby_llm_advice(_, info, ageInMonths):
+    prompt = f"What should I do to keep a baby healthy at {ageInMonths} months?"
+    return simulate_llm_response(prompt)
+
+    
 
