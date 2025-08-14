@@ -1,114 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="stylesheet" href="styles.css" />
+
   <title>BabyBot</title>
 </head>
 <body>
-  <h1>Add Baby Profile</h1>
-  <form id="baby-form">
-    <label>Name: <input type="text" id="name" required></label><br><br>
-    <label>Age in Months: <input type="number" id="age" required></label><br><br>
-    <label>Notes: <input type="text" id="notes"></label><br><br>
-    <button type="submit">Add Baby</button>
-  </form>
+  <h1>👶 BabyBot Health Assistant</h1>
 
-  <h2>Server Response:</h2>
-  <pre id="response"></pre>
+  <section style="margin-bottom: 2em;">
+    <h2>Add Baby & Get Advice</h2>
+    <form id="baby-form" style="max-width: 400px;">
+      <label>Name:<br>
+        <input type="text" id="name" required>
+      </label><br><br>
 
-  <hr>
+      <label>Age in Months:<br>
+        <input type="number" id="age" required min="0" max="60">
+      </label><br><br>
 
-  <h1>Ask for Baby Health Advice</h1>
-  <form id="advice-form">
-    <label>Name: <input type="text" id="adv-name"></label><br><br>
-    <label>Age in Months: <input type="number" id="adv-age" required></label><br><br>
-    <label>Notes: <input type="text" id="adv-notes"></label><br><br>
-    <button type="submit">Get Advice</button>
-  </form>
+      <label>Notes:<br>
+        <input type="text" id="notes">
+      </label><br><br>
 
-  <h2>Advice:</h2>
-  <pre id="advice-response"></pre>
+      <button type="submit">Add Baby + Get Advice</button>
+    </form>
+<label>
+  <input type="checkbox" id="premium" />
+  I'm a premium user
+</label>
 
-  <hr>
-<h1>All Baby Profiles</h1>
-<button id="fetch-babies-btn">Show All Babies</button>
-<pre id="babies-list"></pre>
-
-<h3>Delete Baby</h3>
-<label>Name: <input type="text" id="delete-name" required></label>
-<button id="delete-btn">Delete Baby</button>
-<pre id="delete-response"></pre>
+    <div id="baby-response" style="margin-top: 1em;"></div>
+    <div id="advice-response" style="margin-top: 1em;"></div>
+  </section>
 
 
 
 <script>
-  const form = document.getElementById('baby-form');
-  const responseBox = document.getElementById('response');
+  const form = document.getElementById("baby-form");
+const babyBox = document.getElementById("baby-response");
+const adviceBox = document.getElementById("advice-response");
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    const name = document.getElementById('name').value.trim();
-  const age = parseInt(document.getElementById('age').value);
-  const notes = document.getElementById('notes').value.trim();
+  const name = document.getElementById("name").value.trim();
+  const age = parseInt(document.getElementById("age").value);
+  const notes = document.getElementById("notes").value.trim();
 
-  // ✅ Simple checks
+  const isPremium = document.getElementById("premium").checked;
+  const notesToSend = isPremium ? notes : null;
+
+  //const variables = { name, ageInMonths: age, notes: notesToSend };
+
+
   if (!name || name.length < 2) {
-    responseBox.textContent = "❗ Please enter a valid name (2+ characters).";
+    babyBox.innerHTML = "<p style='color:red;'>❗ Enter valid name.</p>";
     return;
   }
 
   if (isNaN(age) || age < 0 || age > 60) {
-    responseBox.textContent = "❗ Age should be between 0 and 60 months.";
+    babyBox.innerHTML = "<p style='color:red;'>❗ Age must be 0–60.</p>";
     return;
   }
 
-  if (notes.length > 200) {
-    responseBox.textContent = "❗ Notes are too long (max 200 chars).";
-    return;
-  }
-
-    const query = `
-      mutation AddBaby($name: String!, $ageInMonths: Int!, $notes: String) {
-        addBabyProfile(name: $name, ageInMonths: $ageInMonths, notes: $notes) {
-          name
-          ageInMonths
-          notes
-        }
+  // Add baby mutation
+  const addQuery = `
+    mutation AddBaby($name: String!, $ageInMonths: Int!, $notes: String) {
+      addBabyProfile(name: $name, ageInMonths: $ageInMonths, notes: $notes) {
+        name
+        ageInMonths
       }
-    `;
-
-    const variables = { name, ageInMonths: age, notes };
-
-    try {
-      const res = await fetch('http://localhost:8000/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, variables })
-      });
-
-      const json = await res.json();
-      console.log(json); // Debug
-
-      if (json.errors) {
-        responseBox.textContent = "❌ Error: " + json.errors[0].message;
-        return;
-      }
-
-      const baby = json.data?.addBabyProfile;
-      if (!baby) {
-        responseBox.textContent = "⚠️ No baby added.";
-        return;
-      }
-
-      responseBox.textContent = `✅ Baby ${baby.name} (age ${baby.ageInMonths} months) added successfully.`;
-    } catch (err) {
-      console.error(err);
-      responseBox.textContent = "❌ Failed to add baby.";
     }
-  });
+  `;
+
+  const variables = { name, ageInMonths: age, notes };
+
+  try {
+    const res = await fetch("http://localhost:8000/graphql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: addQuery, variables }),
+    });
+
+    const json = await res.json();
+
+    if (json.errors) {
+      babyBox.innerHTML = `<p style='color:red;'>❌ Error: ${json.errors[0].message}</p>`;
+      return;
+    }
+
+    const baby = json.data.addBabyProfile;
+    babyBox.innerHTML = `<p style='color:green;'>✅ Baby ${baby.name} added successfully.</p>`;
+
+    // Now auto-get advice!
+    // Advice query
+const adviceQuery = `
+  query GetLLMAdvice($ageInMonths: Int!, $notes: String) {
+    babyLLMAdvice(ageInMonths: $ageInMonths, notes: $notes) {
+      message
+      tips
+    }
+  }
+`;
+
+const adviceRes = await fetch("http://localhost:8000/graphql", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: adviceQuery,
+    variables: {
+      ageInMonths: baby.ageInMonths,
+      notes: isPremium ? notes : null
+    },
+  }),
+});
+
+
+    const adviceJson = await adviceRes.json();
+    console.log(adviceJson); // 👈 See what you get
+    if (adviceJson.errors) {
+  console.log("GRAPHQL ERROR:", adviceJson.errors);
+}
+
+
+
+    const advice = adviceJson.data.babyLLMAdvice;
+
+    adviceBox.innerHTML = `
+      <div style="padding: 1em; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9;">
+        <p>🍼 <strong>${advice.message}</strong></p>
+        <ul>
+          ${advice.tips.map((tip) => `<li>${tip}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+  } catch (err) {
+    console.error(err);
+    babyBox.innerHTML = "<p style='color:red;'>❌ Failed to add baby.</p>";
+  }
+});
+
+
+
 </script>
 
-<!-- For Get Advice-->
+<!-- For Get Advice
 <script>
   const adviceForm = document.getElementById('advice-form');
   const adviceBox = document.getElementById('advice-response');
@@ -257,7 +294,7 @@ deleteBtn.addEventListener("click", async () => {
 });
 
 </script>
-
+ -->
 
 </body>
 </html>

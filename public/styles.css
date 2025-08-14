@@ -1,0 +1,66 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #f9fafb;
+  color: #333;
+  padding: 20px;
+}
+
+.baby-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 16px;
+  max-width: 400px;
+}
+
+.baby-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.birthdate {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.advice-box {
+  background: #e0f7fa;
+  border-left: 4px solid #00acc1;
+  padding: 12px 16px;
+  margin-top: 12px;
+  border-radius: 4px;
+  font-style: italic;
+  position: relative;
+}
+
+.advice-loading {
+  font-style: normal;
+  color: #888;
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+button {
+  background: #00acc1;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #007c91;
+}
+
+input[type="text"], input[type="date"] {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
