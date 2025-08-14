@@ -6,6 +6,7 @@ from app.models import Baby, engine
 from app.simulate_llm import simulate_llm_response  # 👈 ADD THIS
 
 
+PREMIUM_ENABLED = False
 
 USE_LLM = True  # 🔁 Switch here
 
@@ -14,6 +15,10 @@ def resolve_hello(_, info):
     return "Hello from BabyBot!"
 
 def resolve_add_baby_profile(_, info, name, ageInMonths, notes=None):
+    #For premium users
+    if not PREMIUM_ENABLED:
+        notes = None  # Strip notes if user isn't premium
+
     new_baby = Baby(name=name, ageInMonths=ageInMonths, notes=notes)
     with Session(engine) as session:
         session.add(new_baby)
@@ -37,17 +42,18 @@ def resolve_delete_baby_profile(_, info, name):
         session.delete(baby)
         session.commit()
         return True
-
+    
+    
 
 def resolve_baby_health_advice(_, info, ageInMonths):
     if USE_LLM:
-        prompt = f"What should I do to keep a baby healthy at {ageInMonths} months?"
+        prompt = f"One quick baby health tip for 3-month-old."
 
         # Simulated LLM logic
         response = simulate_llm_response(prompt)
 
         return {
-            "message": response["summary"],
+            "message": response["message"],
             "tips": response["tips"]
         }
 
@@ -80,9 +86,12 @@ def resolve_baby_health_advice(_, info, ageInMonths):
             ]
         }
 
-def resolve_baby_llm_advice(_, info, ageInMonths):
-    prompt = f"What should I do to keep a baby healthy at {ageInMonths} months?"
-    return simulate_llm_response(prompt)
+def resolve_baby_llm_advice(_, info, ageInMonths,notes=None):
+    base_prompt = f"Give one health message for a {ageInMonths}-month-old baby followed by 3 short bullet-point tips starting with a dash."
+    if notes:
+        base_prompt += f" The baby has the following concerns: {notes}. Please consider them when giving the advice."
+
+    return simulate_llm_response(base_prompt)
 
     
 

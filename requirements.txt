@@ -4,3 +4,4 @@ ariadne
 sqlmodel
 aiofiles
 python-multipart
+requests

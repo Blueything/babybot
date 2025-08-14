@@ -2,8 +2,9 @@ type Query {
   hello: String!
   allBabies: [Baby!]!
   babyHealthAdvice(ageInMonths: Int!): Advice!
-  babyLLMAdvice(ageInMonths: Int!): Advice!
+  babyLLMAdvice(ageInMonths: Int!, notes: String): Advice! # 👈 ADD THIS!
 }
+
 
 
 type Mutation {

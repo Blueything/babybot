@@ -1,29 +1,53 @@
 import requests
+import os
+
+API_KEY = "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"
 
 def simulate_llm_response(prompt: str) -> dict:
-    print("⚙️ Sending prompt to LLM:", prompt)
+    print("⚙️ Sending prompt to OpenRouter:", prompt)
 
     try:
         response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "llama3",
-                "prompt": prompt,
-                "stream": False
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {API_KEY}",
+                "Content-Type": "application/json"
             },
-            timeout=15  # 🕒 max wait time in seconds
+            json={
+                "model": "openai/gpt-4o-mini",
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ]
+            },
+            timeout=15
         )
-        data = response.json()["response"].strip()
-        print("✅ LLM Response:", data)
+
+        res_json = response.json()
+        print("🔍 Raw response:", res_json)
+
+        if "choices" not in res_json:
+            return {
+                "message": "❌ Invalid response from LLM.",
+                "tips": [res_json.get("error", {}).get("message", "No choices in response.")]
+            }
+
+        message = res_json["choices"][0]["message"]["content"].strip()
+        lines = message.split("\n")
+        main_message = lines[0].strip()
+
+        def clean_text(line):
+            return line.strip("-• ").strip().strip("*")
+
+        tips = [clean_text(line) for line in lines[1:] if line.strip()]
 
         return {
-            "message": data,
-            "tips": [line.strip("-• ") for line in data.split("\n") if line.strip()]
+            "message": clean_text(main_message),
+            "tips": tips
         }
 
     except Exception as e:
-        print("❌ LLM Error:", e)
+        print("❌ OpenRouter Error:", e)
         return {
             "message": "⚠️ LLM unavailable.",
-            "tips": ["Make sure Ollama is running."]
+            "tips": ["Check your API key and network connection."]
         }
